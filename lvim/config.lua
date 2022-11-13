@@ -11,7 +11,7 @@ an executable
 -- general
 lvim.log.level = "warn"
 lvim.format_on_save = false
-lvim.colorscheme = "tokyonight-storm"
+lvim.colorscheme = "tokyonight"
 lvim.lsp.automatic_servers_installation = false
 vim.list_extend(lvim.lsp.automatic_configuration.skipped_servers, { "pyright" })
 require("lvim.lsp.manager").setup("pylsp")
@@ -55,7 +55,7 @@ lvim.keys.normal_mode["<C-s>"] = ":w<cr>"
 -- lvim.builtin.which_key.mappings["P"] = { "<cmd>Telescope projects<CR>", "Projects" }
 lvim.builtin.which_key.mappings["t"] = {
   name = "+Trouble",
-  t = { "<cmd>TroubleToggle<cr>", "Toggle"},
+  t = { "<cmd>TroubleToggle<cr>", "Toggle" },
   r = { "<cmd>Trouble lsp_references<cr>", "References" },
   f = { "<cmd>Trouble lsp_definitions<cr>", "Definitions" },
   d = { "<cmd>Trouble document_diagnostics<cr>", "Diagnostics" },
@@ -66,7 +66,7 @@ lvim.builtin.which_key.mappings["t"] = {
 
 lvim.builtin.which_key.mappings["m"] = {
   name = "+Missing",
-  t = { "<cmd>TodoTelescope keywords=TODO<cr>", "Todo"},
+  t = { "<cmd>TodoTelescope keywords=TODO<cr>", "Todo" },
   f = { "<cmd>TodoTelescope keywords=FIX<cr>", "Fix" },
   b = { "<cmd>TodoTelescope keywords=BUG<cr>", "Bug" },
 }
@@ -140,39 +140,58 @@ lvim.builtin.treesitter.highlight.enable = true
 --   buf_set_option("omnifunc", "v:lua.vim.lsp.omnifunc")
 -- end
 
--- -- set a formatter, this will override the language server formatting capabilities (if it exists)
--- local formatters = require "lvim.lsp.null-ls.formatters"
--- formatters.setup {
---   { command = "black", filetypes = { "python" } },
---   { command = "isort", filetypes = { "python" } },
---   {
---     -- each formatter accepts a list of options identical to https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#Configuration
---     command = "prettier",
---     ---@usage arguments to pass to the formatter
---     -- these cannot contain whitespaces, options such as `--line-width 80` become either `{'--line-width', '80'}` or `{'--line-width=80'}`
---     extra_args = { "--print-with", "100" },
---     ---@usage specify which filetypes to enable. By default a providers will attach to all the filetypes it supports.
---     filetypes = { "typescript", "typescriptreact" },
---   },
--- }
+-- set a formatter, this will override the language server formatting capabilities (if it exists)
+local formatters = require "lvim.lsp.null-ls.formatters"
+formatters.setup {
+  { command = "black", extra_args = { "--preview" }, filetypes = { "python" } },
+  { command = "isort", extra_args = { "--profile black" }, filetypes = { "python" } },
+  -- {
+  --   -- each formatter accepts a list of options identical to https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#Configuration
+  --   command = "prettier",
+  --   ---@usage arguments to pass to the formatter
+  --   -- these cannot contain whitespaces, options such as `--line-width 80` become either `{'--line-width', '80'}` or `{'--line-width=80'}`
+  --   extra_args = { "--print-with", "100" },
+  --   ---@usage specify which filetypes to enable. By default a providers will attach to all the filetypes it supports.
+  --   filetypes = { "typescript", "typescriptreact" },
+  -- },
+}
 
--- -- set additional linters
--- local linters = require "lvim.lsp.null-ls.linters"
--- linters.setup {
---   { command = "flake8", filetypes = { "python" } },
---   {
---     -- each linter accepts a list of options identical to https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#Configuration
---     command = "shellcheck",
---     ---@usage arguments to pass to the formatter
---     -- these cannot contain whitespaces, options such as `--line-width 80` become either `{'--line-width', '80'}` or `{'--line-width=80'}`
---     extra_args = { "--severity", "warning" },
---   },
---   {
---     command = "codespell",
---     ---@usage specify which filetypes to enable. By default a providers will attach to all the filetypes it supports.
---     filetypes = { "javascript", "python" },
---   },
--- }
+lvim.builtin.which_key.mappings["l"]["f"] = {
+  function()
+    require("lvim.lsp.utils").format { timeout_ms = 100000 }
+  end,
+  "Format",
+}
+
+-- set additional linters
+local linters = require "lvim.lsp.null-ls.linters"
+linters.setup {
+  --[[   { command = "flake8", filetypes = { "python" } }, ]]
+  {
+    -- each linter accepts a list of options identical to https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#Configuration
+    command = "shellcheck",
+    ---@usage arguments to pass to the formatter
+    -- these cannot contain whitespaces, options such as `--line-width 80` become either `{'--line-width', '80'}` or `{'--line-width=80'}`
+    extra_args = { "--severity", "warning" },
+  },
+  {
+    command = "cspell",
+    filetypes = { "md", "tex" }
+  },
+  -- {
+  --   command = "codespell",
+  --   ---@usage specify which filetypes to enable. By default a providers will attach to all the filetypes it supports.
+  --   filetypes = { "javascript", "python" },
+  -- },
+}
+
+local code_actions = require "lvim.lsp.null-ls.code_actions"
+code_actions.setup {
+  {
+    command = "shellcheck",
+  },
+}
+
 
 -- Additional Plugins
 lvim.plugins = {
@@ -191,13 +210,33 @@ lvim.plugins = {
       }
     end
   },
-  {'nvim-orgmode/orgmode',
-    ft = {'org'},
+  { 'nvim-orgmode/orgmode',
+    ft = { 'org' },
     config = function()
-      require('orgmode').setup{}
+      require('orgmode').setup {}
       require('orgmode').setup_ts_grammar()
     end
   },
+  {
+    'akinsho/org-bullets.nvim',
+    ft = { 'org' },
+    config = function()
+      require('org-bullets').setup()
+    end
+  },
+  {
+        "ethanholz/nvim-lastplace",
+        event = "BufRead",
+        config = function()
+            require("nvim-lastplace").setup({
+                lastplace_ignore_buftype = { "quickfix", "nofile", "help" },
+                lastplace_ignore_filetype = {
+                    "gitcommit", "gitrebase", "svn", "hgcommit",
+                },
+                lastplace_open_folds = true,
+            })
+        end,
+    },
 }
 
 -- Autocommands (https://neovim.io/doc/user/autocmd.html)
@@ -217,10 +256,20 @@ lvim.plugins = {
 -- treesitter options for orgmode
 
 -- require('orgmode').setup_ts_grammar()
-lvim.builtin.treesitter.highlight.additional_vim_regex_highlighting = {"org"}
-lvim.builtin.treesitter.ensure_installed = {"org"}
+lvim.builtin.treesitter.highlight.additional_vim_regex_highlighting = { "org" }
+lvim.builtin.treesitter.ensure_installed = { "org" }
 
 table.insert(lvim.builtin.cmp.sources, { name = "orgmode" })
 table.insert(lvim.builtin.cmp.formatting.source_names, 'orgmode = "(org)"')
 
-
+require 'lspconfig'.pylsp.setup {
+  settings = {
+    pylsp = {
+      plugins = {
+        pycodestyle = {
+          maxLineLength = 88
+        }
+      }
+    }
+  }
+}
