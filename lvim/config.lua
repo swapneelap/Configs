@@ -236,7 +236,10 @@ lvim.plugins = {
                 lastplace_open_folds = true,
             })
         end,
-    },
+  },
+  {
+    'ntpeters/vim-better-whitespace'
+  },
 }
 
 -- Autocommands (https://neovim.io/doc/user/autocmd.html)
